@@ -26,15 +26,6 @@ int main(int argc, char** argv)
     my_analyser.set_tree_name(tree_name);
     my_analyser.update();
 
-    vector<int> channel_list;
-    for(int i=0; i <10 ;i++)
-    {
-        channel_list.push_back(i);
-    }
-    my_analyser.set_data_by_channels(channel_list);
-
-    my_analyser.order_all();
-
     TCanvas* c = new TCanvas("c", "ADCs", 2000, 4000);
     
     TCanvas* c_button = new TCanvas("c_button", "Controles", 400, 100);

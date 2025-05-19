@@ -25,6 +25,9 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR})
 # Criação do executável
 add_executable(run main.cpp ${sources})
 
+# Criação do executável_2
+add_executable(run2 main_2.cpp ${sources})
+
 # Adicionando as flags manualmente
 # Passando as opções de compilação corretamente para o CMake
 string(REPLACE " " ";" ROOT_CFLAGS_LIST ${ROOT_CFLAGS})
@@ -35,6 +38,13 @@ target_compile_options(run PRIVATE ${ROOT_CFLAGS_LIST})
 
 # Linkando as bibliotecas do ROOT
 target_link_libraries(run PRIVATE ${ROOT_LIBS})
+
+# Incluindo os diretórios de header e as bibliotecas corretamente
+target_include_directories(run2 PRIVATE ${ROOT_CFLAGS_LIST} ${PROJECT_SOURCE_DIR}/include)
+target_compile_options(run2 PRIVATE ${ROOT_CFLAGS_LIST})
+
+# Linkando as bibliotecas do ROOT
+target_link_libraries(run2 PRIVATE ${ROOT_LIBS})
 
 
 
