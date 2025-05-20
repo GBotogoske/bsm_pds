@@ -1,5 +1,6 @@
 #include <iostream>
 #include <file_analyser.hh>
+#include <beam_time_analyser.hh>
 #include <TGraph.h>
 #include <TCanvas.h>
 #include <TApplication.h> 
@@ -35,14 +36,20 @@ int main(int argc, char** argv)
     b->SetFillColor(38);
     b->Draw();
 
+    beam_time_analyser* my_time_analyser = new beam_time_analyser();
+    my_time_analyser->set_filename("/home/gabriel/Documents/protodune/bsm/pds/data/beam_info/spillrun029917.csv");
+    my_time_analyser->read_data();
+
     //std::vector<CoincidenceGroup> coincidences = my_analyser.find_coincident_events(4);
 
-    long t1=108041308336874992;
-    long t2=t1+(long)4.8/16e-9;
+    //long t1=108041308336874992;
+    //long t2=t1+(long)4.8/16e-9;
 
-    std::cout<< t1 << " --> " << t2 << endl;
+    //std::cout<< t1 << " --> " << t2 << endl;
 
-    std::vector<CoincidenceGroup> coincidences = my_analyser.find_coincident_events_range(4,5,t1,t2);
+    //std::vector<CoincidenceGroup> coincidences = my_analyser.find_coincident_events_range(4,5,t1,t2);
+
+    std::vector<CoincidenceGroup> coincidences = my_analyser.find_coincident_events_ranges(4,5,*my_time_analyser);
 
     int n=coincidences.size();
 

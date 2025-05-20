@@ -153,7 +153,7 @@ void file_analyser::update()
     this->open_ttree();
 }
 
-const my_data *file_analyser::get_data_index(const int i)
+my_data *file_analyser::get_data_index(const int i)
 {
     if(i >= this->n_entries || i<0)
     {
@@ -466,7 +466,7 @@ std::vector<CoincidenceGroup> file_analyser::find_coincident_events_range(int AP
     return coincidences;
 }
 
-std::vector<CoincidenceGroup> file_analyser::find_coincident_events_ranges(int APA, long deltaT_ns, std::vector<long> timestamp_start, std::vector<long> timestamp_stop)
+std::vector<CoincidenceGroup> file_analyser::find_coincident_events_ranges(const int APA, const long deltaT_ns,beam_time_analyser this_time_analyser)
 {
     std::vector<my_data> all_events;
 
@@ -475,7 +475,7 @@ std::vector<CoincidenceGroup> file_analyser::find_coincident_events_ranges(int A
     long t_max;
     long t_min;
 
-    int N_time = timestamp_start.size();
+    int N_time = this_time_analyser.get_N();
 
     for(int i=ch_min;i<ch_min+40;i++)
     {
@@ -501,7 +501,10 @@ std::vector<CoincidenceGroup> file_analyser::find_coincident_events_ranges(int A
             }
             for(int index_time=0;index_time<N_time;index_time++)
             {
-                if(t>=timestamp_start[index_time] && t<=timestamp_stop[index_time])
+                beam_data beam_data_aux = this_time_analyser.get_beam_data_index(index_time);
+                long timestamp_start = (long)(this_time_analyser.get_beam_data_index(index_time).time/16e-9);
+                long timestamp_stop = timestamp_start + (long)(4.8/16e-9); 
+                if(t>=timestamp_start && t<=timestamp_stop)
                 {
                     all_events.push_back(evt);
                     break; 

@@ -7,17 +7,8 @@
 #include <TTree.h>
 #include <TCanvas.h>
 
-
-typedef struct
-{
-    unsigned int Channel;
-    long Timestamp;
-    std::vector<short> adcs; 
-    float integral = 0;
-    float amplitude = 0;
-    float baseline = 0;
-}my_data;
-
+#include <beam_time_analyser.hh>
+#include <my_data.hh>
 
 typedef struct{
     std::vector<my_data> events;
@@ -43,7 +34,7 @@ class file_analyser
         void close_root_file();
 
         
-        const my_data* get_data_index(const int i);
+        my_data* get_data_index(const int i);
         const my_data* get_data_index_and_channel(const int i, const int ch);
         std::vector< my_data> get_data_by_channel(const int ch, const int i=-1);
         std::vector<std::vector< my_data>> get_data_by_channels(const std::vector<int> ch = std::vector<int>(1,-1));
@@ -67,7 +58,7 @@ class file_analyser
         //coincidences
         std::vector<CoincidenceGroup> find_coincident_events(int APA, long deltaT_ns=5);
         std::vector<CoincidenceGroup> find_coincident_events_range(int APA, long deltaT_ns=5, long timestamp_start=0, long timestamp_stop=0);
-        std::vector<CoincidenceGroup> find_coincident_events_ranges(int APA, long deltaT_ns=5, std::vector<long> timestamp_start = std::vector<long>(0), std::vector<long> timestamp_stop = std::vector<long>(0));
+        std::vector<CoincidenceGroup> find_coincident_events_ranges(const int APA, const long deltaT_ns=5, beam_time_analyser this_time_analyser = beam_time_analyser());
 
     private:
 
