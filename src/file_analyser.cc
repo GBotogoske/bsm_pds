@@ -383,3 +383,178 @@ std::vector<CoincidenceGroup> file_analyser::find_coincident_events(int APA, lon
 
     return coincidences;
 }
+
+std::vector<CoincidenceGroup> file_analyser::find_coincident_events_range(int APA, long deltaT_ns, long timestamp_start, long timestamp_stop)
+{
+    std::vector<my_data> all_events;
+
+    bool i=false;
+    int ch_min=-40*APA+160;
+    long t_max;
+    long t_min;
+    for(int i=ch_min;i<ch_min+40;i++)
+    {
+        for (const auto& evt : get_data_by_channel(i)) 
+        {
+            long t = evt.Timestamp;
+            if(!i)
+            {
+                t_max = t;
+                t_min = t;
+                i = true;
+            }
+            else
+            {
+                if(t>t_max)
+                {
+                    t_max = t;
+                }
+                if(t<t_min)
+                {
+                    t_min=t;
+                }
+            }
+            if(t>=timestamp_start && t<=timestamp_stop)
+                all_events.push_back(evt); 
+        }
+    }
+
+    std::cout << "Searching in range:" << std::endl << t_min << " --> " << t_max << std::endl;
+
+    // Ordena por timestamp
+    std::sort(all_events.begin(), all_events.end(), [](const my_data& a, const my_data& b) 
+    {
+        return a.Timestamp < b.Timestamp;
+    });
+
+    std::vector<CoincidenceGroup> coincidences;
+    CoincidenceGroup current_group;
+
+    for (size_t i = 0; i < all_events.size(); ++i)
+    {
+        if (current_group.events.empty()) 
+        {
+            current_group.events.push_back(all_events[i]);
+        } 
+        else 
+        {
+            long time_diff = std::abs(all_events[i].Timestamp - current_group.events.begin()->Timestamp);
+            //std::cout << all_events[i].Timestamp << " "<< current_group.events.begin()->Timestamp << " "<< time_diff <<std::endl;
+
+            if (time_diff <= deltaT_ns)
+            {
+                current_group.events.push_back(all_events[i]);
+            } 
+            else 
+            {
+                if (current_group.events.size() > 1) 
+                {
+                    coincidences.push_back(current_group);
+                }
+                current_group.events.clear();
+                current_group.events.push_back(all_events[i]);
+            }
+        }
+    }
+
+    // Adiciona o último grupo
+    if (current_group.events.size() > 1)
+    {
+        coincidences.push_back(current_group);
+    }
+
+    return coincidences;
+}
+
+std::vector<CoincidenceGroup> file_analyser::find_coincident_events_ranges(int APA, long deltaT_ns, std::vector<long> timestamp_start, std::vector<long> timestamp_stop)
+{
+    std::vector<my_data> all_events;
+
+    bool i=false;
+    int ch_min=-40*APA+160;
+    long t_max;
+    long t_min;
+
+    int N_time = timestamp_start.size();
+
+    for(int i=ch_min;i<ch_min+40;i++)
+    {
+        for (const auto& evt : get_data_by_channel(i)) 
+        {
+            long t = evt.Timestamp;
+            if(!i)
+            {
+                t_max = t;
+                t_min = t;
+                i = true;
+            }
+            else
+            {
+                if(t>t_max)
+                {
+                    t_max = t;
+                }
+                if(t<t_min)
+                {
+                    t_min=t;
+                }
+            }
+            for(int index_time=0;index_time<N_time;index_time++)
+            {
+                if(t>=timestamp_start[index_time] && t<=timestamp_stop[index_time])
+                {
+                    all_events.push_back(evt);
+                    break; 
+                }
+                    
+            }
+            
+        }
+    }
+
+    std::cout << "Searching in range:" << std::endl << t_min << " --> " << t_max << std::endl;
+
+    // Ordena por timestamp
+    std::sort(all_events.begin(), all_events.end(), [](const my_data& a, const my_data& b) 
+    {
+        return a.Timestamp < b.Timestamp;
+    });
+
+    std::vector<CoincidenceGroup> coincidences;
+    CoincidenceGroup current_group;
+
+    for (size_t i = 0; i < all_events.size(); ++i)
+    {
+        if (current_group.events.empty()) 
+        {
+            current_group.events.push_back(all_events[i]);
+        } 
+        else 
+        {
+            long time_diff = std::abs(all_events[i].Timestamp - current_group.events.begin()->Timestamp);
+            //std::cout << all_events[i].Timestamp << " "<< current_group.events.begin()->Timestamp << " "<< time_diff <<std::endl;
+
+            if (time_diff <= deltaT_ns)
+            {
+                current_group.events.push_back(all_events[i]);
+            } 
+            else 
+            {
+                if (current_group.events.size() > 1) 
+                {
+                    coincidences.push_back(current_group);
+                }
+                current_group.events.clear();
+                current_group.events.push_back(all_events[i]);
+            }
+        }
+    }
+
+    // Adiciona o último grupo
+    if (current_group.events.size() > 1)
+    {
+        coincidences.push_back(current_group);
+    }
+
+    return coincidences;
+}

@@ -66,6 +66,8 @@ class file_analyser
 
         //coincidences
         std::vector<CoincidenceGroup> find_coincident_events(int APA, long deltaT_ns=5);
+        std::vector<CoincidenceGroup> find_coincident_events_range(int APA, long deltaT_ns=5, long timestamp_start=0, long timestamp_stop=0);
+        std::vector<CoincidenceGroup> find_coincident_events_ranges(int APA, long deltaT_ns=5, std::vector<long> timestamp_start = std::vector<long>(0), std::vector<long> timestamp_stop = std::vector<long>(0));
 
     private:
 

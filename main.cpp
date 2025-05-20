@@ -35,13 +35,25 @@ int main(int argc, char** argv)
     b->SetFillColor(38);
     b->Draw();
 
-    std::vector<CoincidenceGroup> coincidences = my_analyser.find_coincident_events(4);
+    //std::vector<CoincidenceGroup> coincidences = my_analyser.find_coincident_events(4);
+
+    long t1=108041308336874992;
+    long t2=t1+(long)4.8/16e-9;
+
+    std::cout<< t1 << " --> " << t2 << endl;
+
+    std::vector<CoincidenceGroup> coincidences = my_analyser.find_coincident_events_range(4,5,t1,t2);
 
     int n=coincidences.size();
 
     for (int index = 0; index < n; index++)
     {
         std::cout << "mostrando index: " << index << std::endl;
+        for(my_data data_for:  coincidences[index].events)
+        {
+            std::cout << data_for.Channel << " -------- "<< data_for.Timestamp << std::endl;
+        }
+    
         next_clicked = false;
         my_analyser.print_all_channels_group(4, c, coincidences[index].events);
         c->Update();
