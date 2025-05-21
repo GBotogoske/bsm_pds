@@ -22,12 +22,24 @@ void my_data::print_zero_crossing()
     std::cout << "Zero crossing: " << this->zero_crossing <<std::endl;
 }
 
+void my_data::print_integral()
+{
+    std::cout << "Integral: " << this->integral <<std::endl;
+}
+
+void my_data::print_amplitude()
+{
+    std::cout << "Amplitude: " << this->amplitude <<std::endl;
+}
+
 void my_data::print_all()
 {
     this->print_baseline();
     this->print_noise();
     this->print_t0();
     this->print_zero_crossing();
+    this->print_integral();
+    this->print_amplitude();
 }
 
 void my_data::calc_baseline(const int index)
@@ -100,4 +112,51 @@ void my_data::calc_zero_crossing(const int index,const int index_lim)
 
     this->zero_crossing = -1000; //error
     return; 
+}
+
+void my_data::calc_integral()
+{
+    this->integral = 0;
+    if(this->zero_crossing != -1000 && this->t0 != -1000)
+    {
+        if(this->zero_crossing >= this->t0)
+        {
+            int start = (int)this->t0;
+            int end = (int)this->zero_crossing;
+
+            for(int i = start; i<=end ; i++)
+            {
+                this->integral-=(this->adcs[i]-this->baseline);
+            }
+            return;
+
+        }
+    }
+    this->integral=-1000;
+    return;
+}
+
+void my_data::calc_amplitude()
+{
+    this->amplitude = 1000;
+    if(this->zero_crossing != -1000 && this->t0 != -1000)
+    {
+        if(this->zero_crossing >= this->t0)
+        {
+            int start = (int)this->t0;
+            int end = (int)this->zero_crossing;
+
+            for(int i = start; i<=end ; i++)
+            {
+                double value = this->adcs[i]-this->baseline;
+                if(this->amplitude >= value)
+                {
+                    this->amplitude = value;
+                }
+            }
+
+        }
+    }
+    this->amplitude=-this->amplitude;
+    return;
 }

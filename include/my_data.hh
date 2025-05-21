@@ -21,6 +21,8 @@ class my_data
         void print_noise();
         void print_t0();
         void print_zero_crossing();
+        void print_integral();
+        void print_amplitude();
 
         void print_all();
 
@@ -28,6 +30,8 @@ class my_data
         void calc_noise(const int index);
         void calc_t0(const int index,const int index_lim);
         void calc_zero_crossing(const int index,const int index_lim);
+        void calc_integral();
+        void calc_amplitude();
 };
 
 
