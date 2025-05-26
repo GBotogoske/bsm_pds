@@ -466,7 +466,7 @@ std::vector<CoincidenceGroup> file_analyser::find_coincident_events_range(int AP
     return coincidences;
 }
 
-std::vector<CoincidenceGroup> file_analyser::find_coincident_events_ranges(const int APA, const long deltaT_ns,beam_time_analyser this_time_analyser)
+std::vector<CoincidenceGroup> file_analyser::find_coincident_events_ranges(const int APA, const long deltaT_ns,beam_time_analyser this_time_analyser,bool in_the_range)
 {
     std::vector<my_data> all_events;
 
@@ -477,10 +477,13 @@ std::vector<CoincidenceGroup> file_analyser::find_coincident_events_ranges(const
 
     int N_time = this_time_analyser.get_N();
 
+    bool flag_in_the_range=true;
+
     for(int i=ch_min;i<ch_min+40;i++)
     {
         for (const auto& evt : get_data_by_channel(i)) 
         {
+            flag_in_the_range = false;
             long t = evt.Timestamp;
             if(!i)
             {
@@ -501,15 +504,36 @@ std::vector<CoincidenceGroup> file_analyser::find_coincident_events_ranges(const
             }
             for(int index_time=0;index_time<N_time;index_time++)
             {
-                beam_data beam_data_aux = this_time_analyser.get_beam_data_index(index_time);
                 long timestamp_start = (long)(this_time_analyser.get_beam_data_index(index_time).time/16e-9);
-                long timestamp_stop = timestamp_start + (long)(4.8/16e-9); 
-                if(t>=timestamp_start && t<=timestamp_stop)
+                long timestamp_stop = timestamp_start + (long)(4.8/16e-9);
+                if(in_the_range)
                 {
-                    all_events.push_back(evt);
-                    break; 
+                    if(t>=timestamp_start && t<=timestamp_stop)
+                    {
+                        long pot = (long)(this_time_analyser.get_beam_data_index(index_time).pot);
+                        if(pot>=1e12)
+                        {
+                            all_events.push_back(evt);
+                            break; 
+                        }
+                    }
                 }
-                    
+                else
+                {
+                    if(t>=timestamp_start && t<=timestamp_stop)
+                    {
+                        long pot = (long)(this_time_analyser.get_beam_data_index(index_time).pot);
+                        if(pot>=1e12)
+                        {
+                            flag_in_the_range = true;
+                            break; 
+                        }
+                    }
+                }
+            }
+            if(!(in_the_range) && !(flag_in_the_range))
+            {
+                all_events.push_back(evt); 
             }
             
         }

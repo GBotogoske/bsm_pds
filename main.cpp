@@ -18,6 +18,30 @@ bool next_clicked = false;
 
 int main(int argc, char** argv)
 {
+
+    int my_index,APA;
+
+    if(argc>1)
+    {
+        my_index = std::stoi(argv[1]);
+    }
+    else
+    {
+        my_index = 0;
+    }
+
+    if(argc>2)
+    {
+        APA = std::stoi(argv[2]);
+    }
+    else
+    {
+        APA = 3;
+    }
+
+    std::cout << "Looking APA: " << APA << std::endl; 
+
+
     TApplication theApp("App", &argc, argv);
 
     file_analyser my_analyser;
@@ -40,29 +64,30 @@ int main(int argc, char** argv)
     my_time_analyser->set_filename("/home/gabriel/Documents/protodune/bsm/pds/data/beam_info/spillrun029917.csv");
     my_time_analyser->read_data();
 
-    //std::vector<CoincidenceGroup> coincidences = my_analyser.find_coincident_events(4);
+    //std::vector<CoincidenceGroup> all_coincidences = my_analyser.find_coincident_events(APA,5);
+    std::vector<CoincidenceGroup> coincidences = my_analyser.find_coincident_events_ranges(APA,5,*my_time_analyser);
+    std::vector<CoincidenceGroup> coincidences_no_beam = my_analyser.find_coincident_events_ranges(APA,5,*my_time_analyser,false);
 
-    //long t1=108041308336874992;
-    //long t2=t1+(long)4.8/16e-9;
+    /* std::cout << all_coincidences.size() << std::endl;
+    std::cout << coincidences.size() << std::endl;
+    std::cout << coincidences_no_beam.size() << std::endl; */
 
-    //std::cout<< t1 << " --> " << t2 << endl;
+    std::vector< std::vector<CoincidenceGroup>*> my_coincidences(2);
+    my_coincidences[0]=&coincidences;
+    my_coincidences[1]=&coincidences_no_beam;
 
-    //std::vector<CoincidenceGroup> coincidences = my_analyser.find_coincident_events_range(4,5,t1,t2);
-
-    std::vector<CoincidenceGroup> coincidences = my_analyser.find_coincident_events_ranges(4,5,*my_time_analyser);
-
-    int n=coincidences.size();
+    int n=my_coincidences[my_index]->size();
 
     for (int index = 0; index < n; index++)
     {
         std::cout << "mostrando index: " << index << std::endl;
-        for(my_data data_for:  coincidences[index].events)
+        for(my_data data_for:  (*my_coincidences[my_index])[index].events)
         {
             std::cout << data_for.Channel << " -------- "<< data_for.Timestamp << std::endl;
         }
     
         next_clicked = false;
-        my_analyser.print_all_channels_group(4, c, coincidences[index].events);
+        my_analyser.print_all_channels_group(APA, c, (*my_coincidences[my_index])[index].events);
         c->Update();
         c_button->cd();
         c_button->Update(); 
