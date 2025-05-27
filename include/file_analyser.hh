@@ -22,14 +22,14 @@ class file_analyser
         ~file_analyser();
 
         void set_file_name(const std::string file);
-        const std::string get_file_name();
+        const std::string get_file_name(int index = 0);
         void set_tree_name(const std::string tree_name);
         const std::string get_tree_name();
         const TFile* get_root();
         const TTree* get_tree();
         const int get_entries();
         
-        void open_root_file();
+        void open_root_file(int index = 0);
         void open_ttree();
         void close_root_file();
 
@@ -43,7 +43,7 @@ class file_analyser
         void order_by_timestamp_ch(const int ch);
         void order_all();
 
-        void update();
+        void update(int index = 0);
 
         void calculate_baseline(const int ch, const int index);
 
@@ -60,9 +60,12 @@ class file_analyser
         std::vector<CoincidenceGroup> find_coincident_events_range(int APA, long deltaT_ns=5, long timestamp_start=0, long timestamp_stop=0);
         std::vector<CoincidenceGroup> find_coincident_events_ranges(const int APA, const long deltaT_ns=5, beam_time_analyser this_time_analyser = beam_time_analyser(),bool in_the_range=true);
 
+
+        void calc_parameters_coincidence_group(std::vector<CoincidenceGroup>* this_coincidences);
+    
     private:
 
-        std::string my_file;
+        std::vector<std::string> my_file{};
         std::string my_tree_name;
         TFile* my_root;
         TTree* my_tree;

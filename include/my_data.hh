@@ -2,8 +2,9 @@
 #define MY_DATA_HH
 
 #include <vector>
+#include "TObject.h"
 
-class my_data
+class my_data: public TObject
 {
     public:
         unsigned int Channel;
@@ -16,6 +17,10 @@ class my_data
         int n_peaks =0;
         float t0 = 0;
         float zero_crossing = 0;
+        int range;
+        int event;
+        int number;
+        int APA;
 
         void print_baseline();
         void print_noise();
@@ -32,6 +37,8 @@ class my_data
         void calc_zero_crossing(const int index,const int index_lim);
         void calc_integral();
         void calc_amplitude();
+
+        ClassDef(my_data, 1);
 };
 
 

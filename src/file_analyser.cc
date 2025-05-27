@@ -19,12 +19,12 @@ file_analyser::~file_analyser()
 
 void file_analyser::set_file_name(const std::string file)
 {
-    this->my_file=file;
+    this->my_file.push_back(file);
 }
 
-const std::string file_analyser::get_file_name()
+const std::string file_analyser::get_file_name(int index)
 {
-    return this->my_file;
+    return this->my_file[index];
 }
 
 void file_analyser::set_tree_name(const std::string tree_name)
@@ -52,9 +52,9 @@ const int file_analyser::get_entries()
     return this->n_entries;
 }
 
-void file_analyser::open_root_file()
+void file_analyser::open_root_file(int index)
 {
-    this->my_root = new TFile(this->my_file.c_str(), "READ");
+    this->my_root = new TFile(this->my_file[index].c_str(), "READ");
 }
 
 void file_analyser::open_ttree()
@@ -147,9 +147,9 @@ void file_analyser::order_all()
     }
 }
 
-void file_analyser::update()
+void file_analyser::update(int index)
 {
-    this->open_root_file();
+    this->open_root_file(index);
     this->open_ttree();
 }
 
@@ -308,9 +308,10 @@ void file_analyser::print_all_channels_group(int APA, TCanvas *c, std::vector<my
 
     for(auto& evt : group_events)
     {
+        int fix_channel = 40*(4-APA);
         int ch = evt.Channel;
-        int row = ch % 10;          
-        int col = ch / 10;           
+        int row = (ch-fix_channel) % 10;          
+        int col = (ch-fix_channel) / 10;           
         int pad_number = row * 4 + col;
         c->cd(pad_number + 1); 
 
@@ -470,7 +471,7 @@ std::vector<CoincidenceGroup> file_analyser::find_coincident_events_ranges(const
 {
     std::vector<my_data> all_events;
 
-    bool i=false;
+    bool i_time=false;
     int ch_min=-40*APA+160;
     long t_max;
     long t_min;
@@ -479,66 +480,77 @@ std::vector<CoincidenceGroup> file_analyser::find_coincident_events_ranges(const
 
     bool flag_in_the_range=true;
 
-    for(int i=ch_min;i<ch_min+40;i++)
+    for(int file_index=0; file_index < this->my_file.size(); file_index++)
     {
-        for (const auto& evt : get_data_by_channel(i)) 
+        this->update(file_index);
+        for(int i=ch_min;i<ch_min+40;i++)
         {
-            flag_in_the_range = false;
-            long t = evt.Timestamp;
-            if(!i)
+            for (const auto& evt : get_data_by_channel(i)) 
             {
-                t_max = t;
-                t_min = t;
-                i = true;
-            }
-            else
-            {
-                if(t>t_max)
+                flag_in_the_range = false;
+                long t = evt.Timestamp;
+                if(!i_time)
                 {
                     t_max = t;
-                }
-                if(t<t_min)
-                {
-                    t_min=t;
-                }
-            }
-            for(int index_time=0;index_time<N_time;index_time++)
-            {
-                long timestamp_start = (long)(this_time_analyser.get_beam_data_index(index_time).time/16e-9);
-                long timestamp_stop = timestamp_start + (long)(4.8/16e-9);
-                if(in_the_range)
-                {
-                    if(t>=timestamp_start && t<=timestamp_stop)
-                    {
-                        long pot = (long)(this_time_analyser.get_beam_data_index(index_time).pot);
-                        if(pot>=1e12)
-                        {
-                            all_events.push_back(evt);
-                            break; 
-                        }
-                    }
+                    t_min = t;
+                    i_time = true;
                 }
                 else
                 {
-                    if(t>=timestamp_start && t<=timestamp_stop)
+                    if(t>t_max)
                     {
-                        long pot = (long)(this_time_analyser.get_beam_data_index(index_time).pot);
-                        if(pot>=1e12)
+                        t_max = t;
+                    }
+                    if(t<t_min)
+                    {
+                        t_min = t;
+                    }
+                }
+                for(int index_time=0;index_time<N_time;index_time++)
+                {
+                    long timestamp_start = (long)(this_time_analyser.get_beam_data_index(index_time).time/16e-9);
+                    long timestamp_stop = timestamp_start + (long)(4.8/16e-9);
+                    if(in_the_range)
+                    {
+                        if(t>=timestamp_start && t<=timestamp_stop)
                         {
-                            flag_in_the_range = true;
-                            break; 
+                            long pot = (long)(this_time_analyser.get_beam_data_index(index_time).pot);
+                            if(pot>=1e12)
+                            {
+                                all_events.push_back(evt);
+                                break; 
+                            }
+                        }
+                        else if(t < timestamp_start)
+                        {
+                            break;
+                        }
+                    }
+                    else
+                    {
+                        if(t>=timestamp_start && t<=timestamp_stop)
+                        {
+                            long pot = (long)(this_time_analyser.get_beam_data_index(index_time).pot);
+                            if(pot>=1e12)
+                            {
+                                flag_in_the_range = true;
+                                break; 
+                            }
+                        }
+                        else if(t < timestamp_start)
+                        {
+                            break;
                         }
                     }
                 }
+                if(!(in_the_range) && !(flag_in_the_range))
+                {
+                    all_events.push_back(evt); 
+                }
+                
             }
-            if(!(in_the_range) && !(flag_in_the_range))
-            {
-                all_events.push_back(evt); 
-            }
-            
         }
     }
-
     std::cout << "Searching in range:" << std::endl << t_min << " --> " << t_max << std::endl;
 
     // Ordena por timestamp
@@ -584,4 +596,24 @@ std::vector<CoincidenceGroup> file_analyser::find_coincident_events_ranges(const
     }
 
     return coincidences;
+}
+
+void file_analyser::calc_parameters_coincidence_group(std::vector<CoincidenceGroup> *this_coincidences)
+{
+    int n = this_coincidences->size();
+
+    for (int i = 0; i < n; i++)
+    {
+        int m = (*this_coincidences)[i].events.size();
+        for (int j = 0; j < m; j++)
+        {
+            (*this_coincidences)[i].events[j].calc_baseline(55);
+            (*this_coincidences)[i].events[j].calc_noise(55); 
+            (*this_coincidences)[i].events[j].calc_t0(55,150);
+            (*this_coincidences)[i].events[j].calc_zero_crossing(80,300);
+            (*this_coincidences)[i].events[j].calc_integral();
+            (*this_coincidences)[i].events[j].calc_amplitude();
+        }
+    }
+
 }

@@ -65,7 +65,7 @@ void my_data::calc_noise(const int index)
 
 void my_data::calc_t0(const int index,const int index_lim)
 {
-    float threshold = this->baseline - 5 * this->noise;
+    float threshold = this->baseline - 3 * this->noise;
 
     for (int i = index + 1; i < index_lim ; ++i) 
     {
@@ -90,9 +90,9 @@ void my_data::calc_t0(const int index,const int index_lim)
 
 void my_data::calc_zero_crossing(const int index,const int index_lim)
 {
-    float threshold = this->baseline + 5 * this->noise;
+    float threshold = this->baseline + 3 * this->noise;
 
-    std::cout << threshold << std::endl;
+    //std::cout << threshold << std::endl;
     for (int i = index + 1; i < index_lim ; ++i) 
     {
         if (this->adcs[i] > threshold && this->adcs[i - 1] <= threshold) 
